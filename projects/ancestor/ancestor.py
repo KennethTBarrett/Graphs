@@ -1,40 +1,34 @@
-from collections import deque
+# Nodes will be people
+# Edges will be child-parent relationship
+from graph import Graph
 
 def earliest_ancestor(ancestors, starting_node):
-    cache = {}
-    for i in ancestors:
-        # 0th index is parent
-        # 1st index is child
-        parent = i[0]
-        child = i[1]
+    graph = Graph()
 
-        # Determine whether child is in cache. If not...
-        if child not in cache:
-            # Set the child's value to be an array
-            # for easy append.
-            cache[child] = []
-        cache[child].append(parent)
+    # Add nodes and edges.
+    for parent, child in ancestors:
+        graph.add_vertex(parent)
+        graph.add_vertex(child)
+        graph.add_edge(parent, child)
 
-    # Our queue.
-    queue = deque()
-    queue.append([starting_node])
-    
-    anc = [1, -1]  # Base ancestors (this will fulfill the `-1` return requirement)
+    earliest_ancestor = None
 
-    while len(queue) > 0:
-        current = queue.popleft()
-        last_anc = current[-1]
-        # Check if last ancestor is in cache.
-        if last_anc not in cache:
-            # Determine parent / child status.
-            if len(current) > anc[0] or len(current) == anc[0] and last_anc < anc[1]:
-                # Redefine ancestors.
-                anc = [len(current), last_anc]
-        # If last ancestor is in cache:
-        else:
-            # Iterate through items in the last ancestor's entry in our cache.
-            for i in cache[last_anc]:
-                # And append the current ancestor and item.
-                queue.append(current + [i])
-    # Return the 1st index of our ancestors (earliest ancestor).
-    return anc[1]
+    longest_path = 1
+
+    for vertex in graph.vertices:
+        # Using depth first search.
+        path = graph.dfs(vertex, starting_node)
+
+        # Check if continue search.
+        if path:
+            # If we have a longer path, redefine earliest ancestor
+            # (and make it our new longest path)
+            if len(path) > longest_path:
+                longest_path = len(path)
+                earliest_ancestor = vertex
+
+        # If no match has been found, return -1.
+        elif not path and longest_path == 1:
+            earliest_ancestor = -1
+
+    return earliest_ancestor
